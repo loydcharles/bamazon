@@ -35,7 +35,7 @@ function start(res) {
       // based on their answer, either call the bid or the post functions
       if (answer.option.toUpperCase() === "VIEW ITEMS") {
         console.table(res);
-        start();
+        start(res);
       }
       else if (answer.option.toUpperCase() === "BUY AN ITEM") {
         console.log("Here is the items for sale");
@@ -48,7 +48,7 @@ function start(res) {
     });
 }
 
-function buyItem(res){
+function buyItem(res) {
    inquirer
     .prompt([
     {
@@ -60,13 +60,33 @@ function buyItem(res){
       name: "quantity",
       type: "input",
       message: "How many items would you like to buy?"
-    }]).then(function(order){      
-        console.log(order.quantity);
-        console.log(res[order.item-1].stock_quantity); 
+    }]).then(function(order) {      
         if(order.quantity > res[order.item-1].stock_quantity) {
       //the order we have start from 1 where the object from DB starts from 0
-         console.log("We don't have that many in stock, Please try again");
+         console.log("Insufficient quantity!");
          start(res);
        }
+       else {
+          console.log("Total Cost: $" + order.quantity * res[order.item-1].price);     
+          connection.query(
+            "UPDATE products SET ? WHERE ?",
+            [
+              {
+                stock_quantity: res[order.item-1].stock_quantity - order.quantity
+              },
+              {
+                item_id: order.item
+              }
+            ],
+            function(error) {
+              if (error) throw err;              
+                connection.query("SELECT item_id, product_name, price, stock_quantity FROM products", function(err, res) {
+                if (err) throw err;
+                console.table(res);
+                start(res);
+              });
+            }
+          );
+       } 
     });
 }
