@@ -1,7 +1,6 @@
 var mysql = require("mysql");
 require('console.table');
 var inquirer = require("inquirer");
-var readline = require('readline');
 
 var connection = mysql.createConnection({
   host: "localhost",
